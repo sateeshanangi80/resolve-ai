@@ -1,11 +1,22 @@
 import './App.css'
+import resolveIcon32 from './assets/resolve-ai-light-32.png'
+import resolveIcon48 from './assets/resolve-ai-light-48.png'
+import resolveIcon64 from './assets/resolve-ai-light-64.png'
+import resolveIcon96 from './assets/resolve-ai-light-96.png'
 
 function App() {
   return (
     <main className="app">
       <nav className="navbar">
         <a className="brand" href="/">
-          <div className="brand-icon">R</div>
+          <img
+            className="brand-icon"
+            src={resolveIcon48}
+            srcSet={`${resolveIcon48} 1x, ${resolveIcon96} 2x`}
+            width={37}
+            height={37}
+            alt=""
+          />
           <span>
             Resolve<span>AI</span>
           </span>
@@ -149,7 +160,14 @@ function App() {
           </div>
 
           <div className="floating-card ai-floating">
-            <div className="floating-icon">✦</div>
+            <img
+              className="floating-icon"
+              src={resolveIcon32}
+              srcSet={`${resolveIcon32} 1x, ${resolveIcon64} 2x`}
+              width={27}
+              height={27}
+              alt=""
+            />
             <div>
               <strong>AI Assistant</strong>
               <span>Ticket classified automatically</span>

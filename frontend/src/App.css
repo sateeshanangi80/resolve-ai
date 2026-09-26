@@ -17,8 +17,8 @@ body {
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
-  background: #070b14;
-  color: #ffffff;
+  background: #f8fafc;
+  color: #172033;
 }
 
 button,
@@ -28,6 +28,19 @@ a {
 
 button {
   cursor: pointer;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 3px solid #6455df;
+  outline-offset: 4px;
+}
+
+.login-button:hover,
+.secondary-button:hover,
+.ticket-footer button:hover {
+  background: #eef0ff;
+  border-color: #b9b5ed;
 }
 
 a {
@@ -40,12 +53,12 @@ a {
   overflow: hidden;
   background:
     radial-gradient(circle at 75% 35%,
-      rgba(62, 87, 255, 0.18),
+      rgba(99, 102, 241, 0.07),
       transparent 30%),
     radial-gradient(circle at 25% 25%,
-      rgba(0, 190, 255, 0.08),
+      rgba(14, 165, 233, 0.04),
       transparent 25%),
-    #070b14;
+    #f8fafc;
 }
 
 /* Navbar */
@@ -69,23 +82,26 @@ a {
 }
 
 .brand>span>span {
-  color: #7587ff;
+  background: linear-gradient(135deg, #007edb, #6236ed, #a81bef);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
 }
 
 .brand-icon {
   width: 37px;
   height: 37px;
-  display: grid;
-  place-items: center;
+  display: block;
+  flex-shrink: 0;
+  object-fit: contain;
   border-radius: 10px;
-  background: linear-gradient(135deg, #576cff, #854cff);
-  box-shadow: 0 8px 25px rgba(88, 105, 255, 0.3);
+  filter: drop-shadow(0 2px 4px rgba(42, 56, 92, 0.08));
 }
 
 .nav-links {
   display: flex;
   gap: 34px;
-  color: #9aa5b8;
+  color: #526078;
   font-size: 14px;
 }
 
@@ -94,15 +110,15 @@ a {
 }
 
 .nav-links a:hover {
-  color: white;
+  color: #5145cd;
 }
 
 .login-button {
   padding: 10px 20px;
-  border: 1px solid #273044;
+  border: 1px solid #d7deea;
   border-radius: 9px;
-  background: rgba(255, 255, 255, 0.03);
-  color: white;
+  background: #ffffff;
+  color: #34425b;
 }
 
 /* Hero */
@@ -124,7 +140,7 @@ a {
   padding: 8px 13px;
   border: 1px solid rgba(112, 132, 255, 0.3);
   border-radius: 100px;
-  color: #a9b4ff;
+  color: #5145cd;
   background: rgba(83, 100, 255, 0.08);
   font-size: 13px;
   display: flex;
@@ -136,8 +152,8 @@ a {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #788aff;
-  box-shadow: 0 0 10px #788aff;
+  background: #6455df;
+  box-shadow: 0 0 10px #6455df;
 }
 
 .hero-content h1 {
@@ -150,7 +166,7 @@ a {
 
 .hero-content h1 span {
   display: block;
-  background: linear-gradient(90deg, #7083ff, #a15bff, #46c9ff);
+  background: linear-gradient(90deg, #4f46c8, #7c3aed, #087eaa);
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
@@ -159,7 +175,7 @@ a {
 .hero-description {
   max-width: 590px;
   margin: 27px 0 31px;
-  color: #9aa6ba;
+  color: #526078;
   font-size: 17px;
   line-height: 1.75;
 }
@@ -185,13 +201,13 @@ a {
 .primary-button {
   border: 0;
   color: white;
-  background: linear-gradient(135deg, #5a6fff, #7c4cff);
+  background: linear-gradient(135deg, #5148d8, #7437dc);
   box-shadow: 0 12px 30px rgba(91, 105, 255, 0.25);
 }
 
 .secondary-button {
-  border: 1px solid #273044;
-  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid #d7deea;
+  background: #ffffff;
 }
 
 .tech-stack {
@@ -215,10 +231,10 @@ a {
 
 .tech-items span {
   padding: 6px 10px;
-  border: 1px solid #1d2635;
+  border: 1px solid #dfe5ef;
   border-radius: 6px;
-  color: #8995a8;
-  background: rgba(255, 255, 255, 0.02);
+  color: #526078;
+  background: #ffffff;
   font-size: 12px;
 }
 
@@ -232,9 +248,9 @@ a {
   padding: 22px;
   border: 1px solid rgba(105, 122, 160, 0.17);
   border-radius: 18px;
-  background: rgba(12, 18, 31, 0.88);
+  background: rgba(255, 255, 255, 0.96);
   box-shadow:
-    0 40px 80px rgba(0, 0, 0, 0.4),
+    0 40px 80px rgba(42, 56, 92, 0.10),
     0 0 80px rgba(73, 89, 255, 0.08);
   backdrop-filter: blur(20px);
 }
@@ -243,7 +259,7 @@ a {
   display: flex;
   justify-content: space-between;
   padding-bottom: 18px;
-  border-bottom: 1px solid #192131;
+  border-bottom: 1px solid #e4e9f1;
 }
 
 .dashboard-header p {
@@ -253,7 +269,7 @@ a {
 }
 
 .dashboard-header span {
-  color: #68758b;
+  color: #5c6980;
   font-size: 11px;
 }
 
@@ -261,14 +277,14 @@ a {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #77d7aa !important;
+  color: #16734e !important;
 }
 
 .online>span {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #45d996;
+  background: #229968;
 }
 
 .stats {
@@ -280,15 +296,15 @@ a {
 
 .stat-card {
   padding: 14px;
-  border: 1px solid #1b2535;
+  border: 1px solid #e1e7f0;
   border-radius: 10px;
-  background: #0c1320;
+  background: #f8faff;
 }
 
 .stat-card span,
 .stat-card small {
   display: block;
-  color: #68768d;
+  color: #5c6980;
   font-size: 10px;
 }
 
@@ -300,9 +316,9 @@ a {
 
 .ticket-card {
   padding: 17px;
-  border: 1px solid #202b3d;
+  border: 1px solid #e1e7f0;
   border-radius: 13px;
-  background: #0a111d;
+  background: #ffffff;
 }
 
 .ticket-top {
@@ -318,7 +334,7 @@ a {
   display: grid;
   place-items: center;
   background: rgba(117, 132, 255, 0.13);
-  color: #8998ff;
+  color: #5145cd;
 }
 
 .ticket-info {
@@ -336,7 +352,7 @@ a {
 }
 
 .ticket-info span {
-  color: #647187;
+  color: #5c6980;
   font-size: 10px;
 }
 
@@ -344,7 +360,7 @@ a {
   padding: 5px 8px;
   border-radius: 5px;
   background: rgba(244, 91, 91, 0.1);
-  color: #ff7d7d;
+  color: #b42332;
   font-size: 9px;
   font-weight: 700;
 }
@@ -364,7 +380,7 @@ a {
   display: flex;
   align-items: center;
   gap: 7px;
-  color: #8d9aff;
+  color: #5145cd;
   font-size: 11px;
   font-weight: 600;
 }
@@ -377,12 +393,12 @@ a {
   padding: 6px 0;
   display: flex;
   justify-content: space-between;
-  color: #69768c;
+  color: #5c6980;
   font-size: 10px;
 }
 
 .analysis-row strong {
-  color: #c9d0df;
+  color: #34425b;
   font-weight: 500;
 }
 
@@ -398,8 +414,8 @@ a {
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: #283555;
-  color: #b7c1df;
+  background: #e9e7ff;
+  color: #5145cd;
   font-size: 9px;
   font-weight: 700;
 }
@@ -419,16 +435,16 @@ a {
 }
 
 .ticket-footer span {
-  color: #657187;
+  color: #5c6980;
   font-size: 8px;
 }
 
 .ticket-footer button {
   padding: 7px 10px;
-  border: 1px solid #27344b;
+  border: 1px solid #d8dfee;
   border-radius: 6px;
-  background: #121c2c;
-  color: #a9b5cc;
+  background: #f4f6ff;
+  color: #4643a3;
   font-size: 9px;
 }
 
@@ -437,10 +453,10 @@ a {
 .floating-card {
   position: absolute;
   padding: 11px 14px;
-  border: 1px solid #202b3c;
+  border: 1px solid #dfe5ef;
   border-radius: 10px;
-  background: #0e1725;
-  box-shadow: 0 20px 35px rgba(0, 0, 0, 0.3);
+  background: #ffffff;
+  box-shadow: 0 20px 35px rgba(42, 56, 92, 0.08);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -457,7 +473,7 @@ a {
 }
 
 .floating-card span {
-  color: #657288;
+  color: #5c6980;
   font-size: 8px;
 }
 
@@ -481,12 +497,13 @@ a {
 }
 
 .floating-icon {
-  color: #97a2ff;
-  background: rgba(101, 115, 255, 0.13);
+  display: block;
+  flex-shrink: 0;
+  object-fit: contain;
 }
 
 .success-icon {
-  color: #5fe2a3;
+  color: #16734e;
   background: rgba(75, 220, 151, 0.1);
 }
 
@@ -496,7 +513,7 @@ a {
   width: min(1180px, calc(100% - 40px));
   margin: 0 auto 80px;
   padding: 30px 0;
-  border-top: 1px solid #171f2c;
+  border-top: 1px solid #dfe5ef;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 35px;
@@ -513,7 +530,7 @@ a {
 }
 
 .features span {
-  color: #6d798d;
+  color: #5c6980;
   font-size: 11px;
   line-height: 1.6;
 }
