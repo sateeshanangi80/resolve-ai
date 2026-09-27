@@ -658,7 +658,8 @@ a {
   font-size: 11px;
 }
 
-.ticket-loading {
+.ticket-loading,
+.ticket-empty {
   margin-bottom: 18px;
   padding: 12px 14px;
   border: 1px solid #e5eaf3;

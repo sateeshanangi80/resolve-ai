@@ -7,42 +7,6 @@ interface TicketResponse {
     data: Ticket[]
 }
 
-const fallbackTickets: Ticket[] = [
-    {
-        _id: 'static-101',
-        title: 'Payment deducted but plan inactive',
-        description:
-            'Customer reports that a payment was deducted but the plan remains inactive. Please verify billing status and restore access if needed.',
-        category: 'Billing',
-        priority: 'High',
-        status: 'Open',
-        createdAt: '2026-09-20T09:30:00.000Z',
-        updatedAt: '2026-09-20T09:30:00.000Z',
-    },
-    {
-        _id: 'static-102',
-        title: 'Login loop on mobile app',
-        description:
-            'Users are repeatedly redirected to the login screen after authentication. Needs a review of app tokens and session refresh logic.',
-        category: 'Authentication',
-        priority: 'Medium',
-        status: 'In Review',
-        createdAt: '2026-09-21T11:10:00.000Z',
-        updatedAt: '2026-09-21T11:10:00.000Z',
-    },
-    {
-        _id: 'static-103',
-        title: 'Dashboard charts not loading',
-        description:
-            'Analytics charts fail to render for some customers after an update. Please inspect recent data fetch changes and cached responses.',
-        category: 'Analytics',
-        priority: 'Low',
-        status: 'Monitoring',
-        createdAt: '2026-09-23T15:40:00.000Z',
-        updatedAt: '2026-09-23T15:40:00.000Z',
-    },
-]
-
 const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000')
     .replace(/\/api\/?$/, '')
     .replace(/\/$/, '')
@@ -80,8 +44,6 @@ function TicketList() {
         fetchTickets()
     }, [])
 
-    const displayTickets = tickets.length > 0 ? tickets : fallbackTickets
-
     return (
         <section className="ticket-section">
             <div className="ticket-heading">
@@ -91,8 +53,8 @@ function TicketList() {
                 </div>
 
                 <div className="ticket-heading-meta">
-                    <strong>{displayTickets.length} tickets</strong>
-                    {error && <small className="ticket-status-note">Showing sample data while live data syncs.</small>}
+                    <strong>{tickets.length} tickets</strong>
+                    {error ? <small className="ticket-status-note">Unable to load live tickets right now.</small> : null}
                 </div>
             </div>
 
@@ -100,35 +62,41 @@ function TicketList() {
                 <div className="ticket-loading">Loading tickets...</div>
             ) : null}
 
-            <div className="ticket-grid">
-                {displayTickets.map((ticket) => (
-                    <article className="ticket-item" key={ticket._id}>
-                        <div className="ticket-item-header">
-                            <span>{ticket.category}</span>
+            {!loading && !error && tickets.length === 0 ? (
+                <div className="ticket-empty">No live tickets available.</div>
+            ) : null}
 
-                            <strong
-                                className={`ticket-priority ${ticket.priority.toLowerCase()}`}
-                            >
-                                {ticket.priority}
-                            </strong>
-                        </div>
+            {!error && tickets.length > 0 ? (
+                <div className="ticket-grid">
+                    {tickets.map((ticket) => (
+                        <article className="ticket-item" key={ticket._id}>
+                            <div className="ticket-item-header">
+                                <span>{ticket.category}</span>
 
-                        <h3>{ticket.title}</h3>
+                                <strong
+                                    className={`ticket-priority ${ticket.priority.toLowerCase()}`}
+                                >
+                                    {ticket.priority}
+                                </strong>
+                            </div>
 
-                        <p>{ticket.description}</p>
+                            <h3>{ticket.title}</h3>
 
-                        <div className="ticket-meta">
-                            <span>
-                                #{ticket._id.slice(-6).toUpperCase()}
-                            </span>
+                            <p>{ticket.description}</p>
 
-                            <span>
-                                {new Date(ticket.createdAt).toLocaleDateString()}
-                            </span>
-                        </div>
-                    </article>
-                ))}
-            </div>
+                            <div className="ticket-meta">
+                                <span>
+                                    #{ticket._id.slice(-6).toUpperCase()}
+                                </span>
+
+                                <span>
+                                    {new Date(ticket.createdAt).toLocaleDateString()}
+                                </span>
+                            </div>
+                        </article>
+                    ))}
+                </div>
+            ) : null}
         </section>
     )
 }
