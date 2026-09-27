@@ -53,3 +53,25 @@ export const createTicket = async (
     })
   }
 }
+
+export const getTickets = async(
+    _req: Request,
+    res:Response
+): Promise<void> => {
+    try {
+        const tickets = await Ticket.find()
+            .sort({ createdAt: -1 })
+        res.status(200).json({
+            success: true,
+            message: 'Tickets retrieved successfully',
+            data:tickets
+        })
+    } catch (error) {
+        console.error('Error retrieving tickets:', error)
+        res.status(500).json({
+            sucess: true,
+            message: 'Failed to retrieve tickets',
+            error:error instanceof Error ? error.message : 'Unknown error'
+        })
+    }
+}
