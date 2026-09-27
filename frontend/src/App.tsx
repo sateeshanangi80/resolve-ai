@@ -3,6 +3,7 @@ import resolveIcon32 from './assets/resolve-ai-light-32.png'
 import resolveIcon48 from './assets/resolve-ai-light-48.png'
 import resolveIcon64 from './assets/resolve-ai-light-64.png'
 import resolveIcon96 from './assets/resolve-ai-light-96.png'
+import TicketList from './components/TicketList'
 
 function App() {
   return (
@@ -183,7 +184,7 @@ function App() {
           </div>
         </div>
       </section>
-
+      <TicketList />
       <section className="features" id="features">
         <div>
           <strong>Smart Ticket Management</strong>
