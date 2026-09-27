@@ -7,7 +7,7 @@ interface TicketResponse {
     data: Ticket[]
 }
 
-const API_URL = (import.meta.env.VITE_API_URL)
+const API_URL = (import.meta.env.VITE_API_URL || 'https://resolve-ai-api-fraz.onrender.com')
     .replace(/\/api\/?$/, '')
     .replace(/\/$/, '')
 
