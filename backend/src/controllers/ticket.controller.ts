@@ -84,7 +84,7 @@ export const getTicketById = async (
       });
       return;
     }
-    res.json(200).json({
+    res.status(200).json({
       success: true,
       message: "Ticket retrieved successfully",
       data: ticket,
