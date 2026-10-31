@@ -1,104 +1,123 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { Ticket } from '../types/ticket'
+import CreateTicket from './CreateTicket'
 
 interface TicketResponse {
-    success: boolean
-    count: number
-    data: Ticket[]
+  success: boolean
+  count: number
+  data: Ticket[]
 }
 
-const API_URL = (import.meta.env.VITE_API_URL || 'https://resolve-ai-api-fraz.onrender.com')
-    .replace(/\/api\/?$/, '')
-    .replace(/\/$/, '')
+const API_URL =
+  import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
 function TicketList() {
-    const [tickets, setTickets] = useState<Ticket[]>([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState('')
+  const [tickets, setTickets] = useState<Ticket[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
-    useEffect(() => {
-        const fetchTickets = async () => {
-            try {
-                setLoading(true)
+  const fetchTickets = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError('')
 
-                const response = await fetch(`${API_URL}/api/tickets`)
+      const response = await fetch(
+        `${API_URL}/api/tickets`
+      )
 
-                if (!response.ok) {
-                    throw new Error('Failed to fetch tickets')
-                }
+      if (!response.ok) {
+        throw new Error('Failed to fetch tickets')
+      }
 
-                const result: TicketResponse = await response.json()
+      const result: TicketResponse =
+        await response.json()
 
-                setTickets(result.data)
-            } catch (err) {
-                setError(
-                    err instanceof Error
-                        ? err.message
-                        : 'Something went wrong'
-                )
-            } finally {
-                setLoading(false)
-            }
-        }
+      setTickets(result.data)
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Something went wrong'
+      )
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
-        fetchTickets()
-    }, [])
+  useEffect(() => {
+    fetchTickets()
+  }, [fetchTickets])
 
-    return (
-        <section className="ticket-section">
-            <div className="ticket-heading">
-                <div>
-                    <span>LIVE DATA</span>
-                    <h2>Recent Support Tickets</h2>
-                </div>
+  return (
+    <section className="ticket-section">
+      <div className="ticket-heading">
+        <div>
+          <span>LIVE DATA</span>
+          <h2>Recent Support Tickets</h2>
+        </div>
 
-                <div className="ticket-heading-meta">
-                    <strong>{tickets.length} tickets</strong>
-                    {error ? <small className="ticket-status-note">Unable to load live tickets right now.</small> : null}
-                </div>
-            </div>
+        <div className="ticket-heading-actions">
+          <strong>
+            {tickets.length}{' '}
+            {tickets.length === 1
+              ? 'ticket'
+              : 'tickets'}
+          </strong>
 
-            {loading && !tickets.length ? (
-                <div className="ticket-loading">Loading tickets...</div>
-            ) : null}
+          <CreateTicket onCreated={fetchTickets} />
+        </div>
+      </div>
 
-            {!loading && !error && tickets.length === 0 ? (
-                <div className="ticket-empty">No live tickets available.</div>
-            ) : null}
+      {loading && (
+        <p>Loading tickets...</p>
+      )}
 
-            {!error && tickets.length > 0 ? (
-                <div className="ticket-grid">
-                    {tickets.map((ticket) => (
-                        <article className="ticket-item" key={ticket._id}>
-                            <div className="ticket-item-header">
-                                <span>{ticket.category}</span>
+      {error && (
+        <p className="ticket-error">
+          {error}
+        </p>
+      )}
 
-                                <strong
-                                    className={`ticket-priority ${ticket.priority.toLowerCase()}`}
-                                >
-                                    {ticket.priority}
-                                </strong>
-                            </div>
+      {!loading && !error && (
+        <div className="ticket-grid">
+          {tickets.map((ticket) => (
+            <article
+              className="ticket-item"
+              key={ticket._id}
+            >
+              <div className="ticket-item-header">
+                <span>{ticket.category}</span>
 
-                            <h3>{ticket.title}</h3>
+                <strong
+                  className={`ticket-priority ${ticket.priority.toLowerCase()}`}
+                >
+                  {ticket.priority}
+                </strong>
+              </div>
 
-                            <p>{ticket.description}</p>
+              <h3>{ticket.title}</h3>
 
-                            <div className="ticket-meta">
-                                <span>
-                                    #{ticket._id.slice(-6).toUpperCase()}
-                                </span>
+              <p>{ticket.description}</p>
 
-                                <span>
-                                    {new Date(ticket.createdAt).toLocaleDateString()}
-                                </span>
-                            </div>
-                        </article>
-                    ))}
-                </div>
-            ) : null}
-        </section>
-    )
+              <div className="ticket-meta">
+                <span>
+                  #{ticket._id
+                    .slice(-6)
+                    .toUpperCase()}
+                </span>
+
+                <span>
+                  {new Date(
+                    ticket.createdAt
+                  ).toLocaleDateString()}
+                </span>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
+  )
 }
 
 export default TicketList
