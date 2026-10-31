@@ -98,3 +98,38 @@ export const getTicketById = async (
     });
   }
 };
+
+export const updateTicket = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const updateTicket = await Ticket.findByIdAndUpdate(id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!updateTicket) {
+      res.status(404).json({
+        sucess: false,
+        message: "Ticket Not Found",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      status: true,
+      message: "Ticket Updated Successfully",
+      data: updateTicket,
+    });
+  } catch (error) {
+    console.error(`Error updating ticket:`, error);
+
+    res.status(500).json({
+      sucess: false,
+      message: "Failed to update ticke ",
+    });
+  }
+};
