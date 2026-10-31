@@ -1,123 +1,141 @@
-import { useCallback, useEffect, useState } from 'react'
-import type { Ticket } from '../types/ticket'
-import CreateTicket from './CreateTicket'
+import { useCallback, useEffect, useState } from "react";
+import type { Ticket } from "../types/ticket";
+import CreateTicket from "./CreateTicket";
+import TicketDetails from "./TicketDetails";
 
 interface TicketResponse {
-  success: boolean
-  count: number
-  data: Ticket[]
+  success: boolean;
+  count: number;
+  data: Ticket[];
 }
 
-const API_URL =
-  import.meta.env.VITE_API_URL || 'http://localhost:5000'
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 function TicketList() {
-  const [tickets, setTickets] = useState<Ticket[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const fetchTickets = useCallback(async () => {
     try {
-      setLoading(true)
-      setError('')
+      setLoading(true);
+      setError("");
 
-      const response = await fetch(
-        `${API_URL}/api/tickets`
-      )
+      const response = await fetch(`${API_URL}/api/tickets`);
+
+      const result: TicketResponse = await response.json();
 
       if (!response.ok) {
-        throw new Error('Failed to fetch tickets')
+        throw new Error("Failed to fetch tickets");
       }
 
-      const result: TicketResponse =
-        await response.json()
-
-      setTickets(result.data)
+      setTickets(result.data);
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Something went wrong'
-      )
+      setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    fetchTickets()
-  }, [fetchTickets])
+    fetchTickets();
+  }, [fetchTickets]);
 
   return (
-    <section className="ticket-section">
-      <div className="ticket-heading">
-        <div>
-          <span>LIVE DATA</span>
-          <h2>Recent Support Tickets</h2>
+    <>
+      <section className="ticket-section">
+        <div className="ticket-heading">
+          <div>
+            <span className="section-label">LIVE DATA</span>
+
+            <h2>Recent Support Tickets</h2>
+
+            <p className="ticket-subtitle">
+              Track and manage customer support requests.
+            </p>
+          </div>
+
+          <div className="ticket-heading-actions">
+            <strong className="ticket-count">
+              {tickets.length} {tickets.length === 1 ? "ticket" : "tickets"}
+            </strong>
+
+            <CreateTicket onCreated={fetchTickets} />
+          </div>
         </div>
 
-        <div className="ticket-heading-actions">
-          <strong>
-            {tickets.length}{' '}
-            {tickets.length === 1
-              ? 'ticket'
-              : 'tickets'}
-          </strong>
+        {loading && <div className="ticket-state">Loading tickets...</div>}
 
-          <CreateTicket onCreated={fetchTickets} />
-        </div>
-      </div>
+        {error && <div className="ticket-state error">{error}</div>}
 
-      {loading && (
-        <p>Loading tickets...</p>
-      )}
+        {!loading && !error && tickets.length === 0 && (
+          <div className="ticket-state">No tickets found.</div>
+        )}
 
-      {error && (
-        <p className="ticket-error">
-          {error}
-        </p>
-      )}
+        {!loading && !error && tickets.length > 0 && (
+          <div className="ticket-grid">
+            {tickets.map((ticket) => (
+              <article key={ticket._id} className="ticket-item">
+                <div className="ticket-item-header">
+                  <span className="ticket-category">{ticket.category}</span>
 
-      {!loading && !error && (
-        <div className="ticket-grid">
-          {tickets.map((ticket) => (
-            <article
-              className="ticket-item"
-              key={ticket._id}
-            >
-              <div className="ticket-item-header">
-                <span>{ticket.category}</span>
+                  <span
+                    className={`ticket-priority ${ticket.priority.toLowerCase()}`}
+                  >
+                    {ticket.priority}
+                  </span>
+                </div>
 
-                <strong
-                  className={`ticket-priority ${ticket.priority.toLowerCase()}`}
-                >
-                  {ticket.priority}
-                </strong>
-              </div>
+                <h3>{ticket.title}</h3>
 
-              <h3>{ticket.title}</h3>
+                <div className="ticket-summary-row">
+                  <div>
+                    <span className="ticket-summary-label">Ticket ID</span>
 
-              <p>{ticket.description}</p>
+                    <strong>#{ticket._id.slice(-6).toUpperCase()}</strong>
+                  </div>
 
-              <div className="ticket-meta">
-                <span>
-                  #{ticket._id
-                    .slice(-6)
-                    .toUpperCase()}
-                </span>
+                  <div>
+                    <span className="ticket-summary-label">Status</span>
 
-                <span>
-                  {new Date(
-                    ticket.createdAt
-                  ).toLocaleDateString()}
-                </span>
-              </div>
-            </article>
-          ))}
-        </div>
-      )}
-    </section>
-  )
+                    <strong className="ticket-status">
+                      {ticket.status || "Open"}
+                    </strong>
+                  </div>
+                </div>
+
+                <div className="ticket-card-footer">
+                  <span>
+                    {new Date(ticket.createdAt).toLocaleDateString("en-IN", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </span>
+
+                  <button
+                    type="button"
+                    className="view-ticket-button"
+                    onClick={() => setSelectedTicketId(ticket._id)}
+                  >
+                    View Details
+                    <span>→</span>
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <TicketDetails
+        ticketId={selectedTicketId}
+        onClose={() => setSelectedTicketId(null)}
+      />
+    </>
+  );
 }
 
-export default TicketList
+export default TicketList;

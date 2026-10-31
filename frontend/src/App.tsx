@@ -56,14 +56,14 @@ function App() {
               <span>→</span>
             </button>
 
-            <a
+            {/* <a
               href="https://github.com/sateeshanangi80/resolve-ai"
               target="_blank"
               rel="noreferrer"
               className="secondary-button"
             >
               View on GitHub
-            </a>
+            </a> */}
           </div>
 
           <div className="tech-stack">
