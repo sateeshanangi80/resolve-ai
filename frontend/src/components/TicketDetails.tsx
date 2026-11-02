@@ -4,6 +4,7 @@ import type { Ticket } from "../types/ticket";
 interface TicketDetailsProps {
   ticketId: string | null;
   onClose: () => void;
+  onUpdated: () => void;
 }
 
 interface TicketResponse {
@@ -12,12 +13,20 @@ interface TicketResponse {
   data: Ticket;
 }
 
+type TicketStatus = "Open" | "In Progress" | "Resolved" | "Closed";
+
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-function TicketDetails({ ticketId, onClose }: TicketDetailsProps) {
+function TicketDetails({ ticketId, onClose, onUpdated }: TicketDetailsProps) {
   const [ticket, setTicket] = useState<Ticket | null>(null);
+
+  const [status, setStatus] = useState<TicketStatus>("Open");
+
   const [loading, setLoading] = useState(false);
+  const [updating, setUpdating] = useState(false);
+
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   useEffect(() => {
     if (!ticketId) return;
@@ -26,6 +35,7 @@ function TicketDetails({ ticketId, onClose }: TicketDetailsProps) {
       try {
         setLoading(true);
         setError("");
+        setSuccess("");
 
         const response = await fetch(`${API_URL}/api/tickets/${ticketId}`);
 
@@ -36,6 +46,8 @@ function TicketDetails({ ticketId, onClose }: TicketDetailsProps) {
         }
 
         setTicket(result.data);
+
+        setStatus((result.data.status || "Open") as TicketStatus);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Something went wrong");
       } finally {
@@ -45,6 +57,44 @@ function TicketDetails({ ticketId, onClose }: TicketDetailsProps) {
 
     fetchTicket();
   }, [ticketId]);
+
+  const handleUpdateStatus = async () => {
+    if (!ticketId) return;
+
+    try {
+      setUpdating(true);
+      setError("");
+      setSuccess("");
+
+      const response = await fetch(`${API_URL}/api/tickets/${ticketId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          status,
+        }),
+      });
+
+      const result: TicketResponse = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "Failed to update ticket");
+      }
+
+      // Update modal with latest ticket
+      setTicket(result.data);
+
+      setSuccess("Ticket status updated successfully");
+
+      // Refresh GET /api/tickets in parent
+      onUpdated();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setUpdating(false);
+    }
+  };
 
   if (!ticketId) {
     return null;
@@ -68,7 +118,9 @@ function TicketDetails({ ticketId, onClose }: TicketDetailsProps) {
 
         {error && <div className="form-error">{error}</div>}
 
-        {!loading && !error && ticket && (
+        {success && <div className="form-success">{success}</div>}
+
+        {!loading && ticket && (
           <>
             <div className="ticket-detail-top">
               <div>
@@ -110,7 +162,7 @@ function TicketDetails({ ticketId, onClose }: TicketDetailsProps) {
               </div>
 
               <div>
-                <span className="detail-label">Status</span>
+                <span className="detail-label">Current Status</span>
 
                 <strong>{ticket.status || "Open"}</strong>
               </div>
@@ -119,6 +171,38 @@ function TicketDetails({ ticketId, onClose }: TicketDetailsProps) {
                 <span className="detail-label">Created</span>
 
                 <strong>{new Date(ticket.createdAt).toLocaleString()}</strong>
+              </div>
+            </div>
+
+            <div className="ticket-update-section">
+              <div>
+                <span className="detail-label">Update Status</span>
+
+                <p>Change the current support ticket status.</p>
+              </div>
+
+              <div className="ticket-update-controls">
+                <select
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value as TicketStatus)}
+                >
+                  <option value="Open">Open</option>
+
+                  <option value="In Progress">In Progress</option>
+
+                  <option value="Resolved">Resolved</option>
+
+                  <option value="Closed">Closed</option>
+                </select>
+
+                <button
+                  type="button"
+                  className="update-ticket-button"
+                  onClick={handleUpdateStatus}
+                  disabled={updating || status === (ticket.status || "Open")}
+                >
+                  {updating ? "Updating..." : "Update Ticket"}
+                </button>
               </div>
             </div>
           </>

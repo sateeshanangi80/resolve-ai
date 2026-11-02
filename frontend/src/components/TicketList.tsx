@@ -133,6 +133,7 @@ function TicketList() {
       <TicketDetails
         ticketId={selectedTicketId}
         onClose={() => setSelectedTicketId(null)}
+        onUpdated={fetchTickets}
       />
     </>
   );
