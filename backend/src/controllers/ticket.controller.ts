@@ -133,3 +133,32 @@ export const updateTicket = async (
     });
   }
 };
+
+export const deleteTicket = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const deleteTicket = await Ticket.findByIdAndDelete(id);
+
+    if (!deleteTicket)
+      res.status(404).json({
+        success: false,
+        message: "Ticket not found",
+      });
+
+    res.status(200).json({
+      success: true,
+      message: "Ticket Deleted successfully",
+      data: deleteTicket,
+    });
+  } catch (error) {
+    console.error("Error deleting ticket:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete ticket",
+    });
+  }
+};

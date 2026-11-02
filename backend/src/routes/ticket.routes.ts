@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   createTicket,
+  deleteTicket,
   getTicketById,
   getTickets,
   updateTicket,
@@ -12,5 +13,6 @@ router.post("/", createTicket);
 router.get("/", getTickets);
 router.get("/:id", getTicketById);
 router.patch("/:id", updateTicket);
+router.delete("/:id",deleteTicket);
 
 export default router;
