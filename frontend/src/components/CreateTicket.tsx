@@ -1,3 +1,4 @@
+import { API_URL } from "../api";
 import { useState } from "react";
 
 interface CreateTicketProps {
@@ -11,7 +12,7 @@ interface TicketForm {
   priority: "Low" | "Medium" | "High";
 }
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 
 function CreateTicket({ onCreated }: CreateTicketProps) {
   const [isOpen, setIsOpen] = useState(false);

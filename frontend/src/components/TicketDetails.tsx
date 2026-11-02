@@ -1,3 +1,4 @@
+import { API_URL } from "../api";
 import { useEffect, useState } from "react";
 import type { Ticket } from "../types/ticket";
 
@@ -15,7 +16,7 @@ interface TicketResponse {
 
 type TicketStatus = "Open" | "In Progress" | "Resolved" | "Closed";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 
 function TicketDetails({ ticketId, onClose, onUpdated }: TicketDetailsProps) {
   const [ticket, setTicket] = useState<Ticket | null>(null);

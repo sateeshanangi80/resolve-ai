@@ -1,3 +1,4 @@
+import { API_URL } from "../api";
 import { useCallback, useEffect, useState } from "react";
 import type { Ticket } from "../types/ticket";
 import CreateTicket from "./CreateTicket";
@@ -9,7 +10,7 @@ interface TicketResponse {
   data: Ticket[];
 }
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 
 function TicketList() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
