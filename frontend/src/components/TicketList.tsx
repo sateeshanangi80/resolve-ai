@@ -135,6 +135,7 @@ function TicketList() {
         ticketId={selectedTicketId}
         onClose={() => setSelectedTicketId(null)}
         onUpdated={fetchTickets}
+        onDeleted={fetchTickets}
       />
     </>
   );

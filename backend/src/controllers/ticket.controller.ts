@@ -1,5 +1,13 @@
 import type { Request, Response } from "express";
-import Ticket from "../models/Ticket.js";
+import mongoose from "mongoose";
+
+import {
+  createTicketService,
+  getTicketService,
+  getTicketByIdService,
+  updateTicketService,
+  deleteTicketService,
+} from "../services/ticket.service.js";
 
 export const createTicket = async (
   req: Request,
@@ -26,7 +34,7 @@ export const createTicket = async (
       return;
     }
 
-    const ticket = await Ticket.create({
+    const ticket = await createTicketService({
       title,
       description,
       category,
@@ -54,7 +62,8 @@ export const getTickets = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const tickets = await Ticket.find().sort({ createdAt: -1 });
+    const tickets = await getTicketService()
+
     res.status(200).json({
       success: true,
       message: "Tickets retrieved successfully",
@@ -62,8 +71,9 @@ export const getTickets = async (
     });
   } catch (error) {
     console.error("Error retrieving tickets:", error);
+
     res.status(500).json({
-      sucess: true,
+      success: false,
       message: "Failed to retrieve tickets",
       error: error instanceof Error ? error.message : "Unknown error",
     });
@@ -75,7 +85,17 @@ export const getTicketById = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const ticket = await Ticket.findById(req.params.id);
+    const { id } = req.params;
+
+    if (typeof id !== "string" || !mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid ticket ID",
+      });
+      return;
+    }
+
+    const ticket = await getTicketByIdService(id);
 
     if (!ticket) {
       res.status(404).json({
@@ -84,6 +104,7 @@ export const getTicketById = async (
       });
       return;
     }
+
     res.status(200).json({
       success: true,
       message: "Ticket retrieved successfully",
@@ -95,6 +116,7 @@ export const getTicketById = async (
     res.status(500).json({
       success: false,
       message: "Failed to retrieve ticket",
+      error: error instanceof Error ? error.message : "Unknown error",
     });
   }
 };
@@ -106,30 +128,36 @@ export const updateTicket = async (
   try {
     const { id } = req.params;
 
-    const updateTicket = await Ticket.findByIdAndUpdate(id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    if (typeof id !== "string" || !mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid ticket ID",
+      });
+      return;
+    }
 
-    if (!updateTicket) {
+    const updatedTicket = await updateTicketService(id, req.body);
+
+    if (!updatedTicket) {
       res.status(404).json({
-        sucess: false,
-        message: "Ticket Not Found",
+        success: false,
+        message: "Ticket not found",
       });
       return;
     }
 
     res.status(200).json({
-      status: true,
-      message: "Ticket Updated Successfully",
-      data: updateTicket,
+      success: true,
+      message: "Ticket updated successfully",
+      data: updatedTicket,
     });
   } catch (error) {
-    console.error(`Error updating ticket:`, error);
+    console.error("Error updating ticket:", error);
 
     res.status(500).json({
-      sucess: false,
-      message: "Failed to update ticke ",
+      success: false,
+      message: "Failed to update ticket",
+      error: error instanceof Error ? error.message : "Unknown error",
     });
   }
 };
@@ -141,24 +169,36 @@ export const deleteTicket = async (
   try {
     const { id } = req.params;
 
-    const deleteTicket = await Ticket.findByIdAndDelete(id);
+    if (typeof id !== "string" || !mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid ticket ID",
+      });
+      return;
+    }
 
-    if (!deleteTicket)
+    const deletedTicket = await deleteTicketService(id);
+
+    if (!deletedTicket) {
       res.status(404).json({
         success: false,
         message: "Ticket not found",
       });
+      return;
+    }
 
     res.status(200).json({
       success: true,
-      message: "Ticket Deleted successfully",
-      data: deleteTicket,
+      message: "Ticket deleted successfully",
+      data: deletedTicket,
     });
   } catch (error) {
     console.error("Error deleting ticket:", error);
+
     res.status(500).json({
       success: false,
       message: "Failed to delete ticket",
+      error: error instanceof Error ? error.message : "Unknown error",
     });
   }
 };

@@ -88,16 +88,16 @@ function CreateTicket({ onCreated }: CreateTicketProps) {
     <>
       <button
         type="button"
-        className="create-ticket-button"
+        className="button button-primary"
         onClick={() => setIsOpen(true)}
       >
         + Create Ticket
       </button>
 
       {isOpen && (
-        <div className="ticket-modal-overlay">
-          <div className="ticket-modal">
-            <div className="ticket-modal-header">
+        <div className="modal-overlay">
+          <div className="modal">
+            <div className="modal-header">
               <div>
                 <span>NEW SUPPORT REQUEST</span>
                 <h2>Create Ticket</h2>
@@ -116,7 +116,7 @@ function CreateTicket({ onCreated }: CreateTicketProps) {
               <div className="form-group">
                 <label htmlFor="title">Title</label>
 
-                <input
+                <input className="field"
                   id="title"
                   name="title"
                   value={form.title}
@@ -128,7 +128,7 @@ function CreateTicket({ onCreated }: CreateTicketProps) {
               <div className="form-group">
                 <label htmlFor="description">Description</label>
 
-                <textarea
+                <textarea className="field"
                   id="description"
                   name="description"
                   value={form.description}
@@ -142,7 +142,7 @@ function CreateTicket({ onCreated }: CreateTicketProps) {
                 <div className="form-group">
                   <label htmlFor="category">Category</label>
 
-                  <select
+                  <select className="field"
                     id="category"
                     name="category"
                     value={form.category}
@@ -163,7 +163,7 @@ function CreateTicket({ onCreated }: CreateTicketProps) {
                 <div className="form-group">
                   <label htmlFor="priority">Priority</label>
 
-                  <select
+                  <select className="field"
                     id="priority"
                     name="priority"
                     value={form.priority}
@@ -178,12 +178,12 @@ function CreateTicket({ onCreated }: CreateTicketProps) {
                 </div>
               </div>
 
-              {error && <div className="form-error">{error}</div>}
+              {error && <div className="alert alert-error">{error}</div>}
 
-              <div className="ticket-modal-actions">
+              <div className="form-actions">
                 <button
                   type="button"
-                  className="cancel-button"
+                  className="button button-secondary"
                   onClick={() => setIsOpen(false)}
                 >
                   Cancel
@@ -191,7 +191,7 @@ function CreateTicket({ onCreated }: CreateTicketProps) {
 
                 <button
                   type="submit"
-                  className="submit-ticket-button"
+                  className="button button-primary"
                   disabled={loading}
                 >
                   {loading ? "Creating..." : "Create Ticket"}

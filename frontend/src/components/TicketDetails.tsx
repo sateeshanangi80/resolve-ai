@@ -1,11 +1,12 @@
-import { API_URL } from "../api";
 import { useEffect, useState } from "react";
+import { API_URL } from "../api";
 import type { Ticket } from "../types/ticket";
 
 interface TicketDetailsProps {
   ticketId: string | null;
   onClose: () => void;
   onUpdated: () => void;
+  onDeleted: () => void;
 }
 
 interface TicketResponse {
@@ -16,12 +17,19 @@ interface TicketResponse {
 
 type TicketStatus = "Open" | "In Progress" | "Resolved" | "Closed";
 
-
-
-function TicketDetails({ ticketId, onClose, onUpdated }: TicketDetailsProps) {
+function TicketDetails({
+  ticketId,
+  onClose,
+  onUpdated,
+  onDeleted,
+}: TicketDetailsProps) {
   const [ticket, setTicket] = useState<Ticket | null>(null);
 
   const [status, setStatus] = useState<TicketStatus>("Open");
+
+  const [deleting, setDeleting] = useState(false);
+
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [updating, setUpdating] = useState(false);
@@ -97,14 +105,40 @@ function TicketDetails({ ticketId, onClose, onUpdated }: TicketDetailsProps) {
     }
   };
 
+  const handleDeleteTicket = async () => {
+    if (!ticketId) return;
+
+    try {
+      setDeleting(true);
+      setError("");
+
+      const response = await fetch(`${API_URL}/api/tickets/${ticketId}`, {
+        method: "DELETE",
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "Failed to delete ticket");
+      }
+
+      onDeleted();
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   if (!ticketId) {
     return null;
   }
 
   return (
-    <div className="ticket-modal-overlay">
-      <div className="ticket-details-modal">
-        <div className="ticket-modal-header">
+    <div className="modal-overlay">
+      <div className="modal modal-wide">
+        <div className="modal-header">
           <div>
             <span>TICKET DETAILS</span>
             <h2>Support Ticket</h2>
@@ -117,9 +151,9 @@ function TicketDetails({ ticketId, onClose, onUpdated }: TicketDetailsProps) {
 
         {loading && <p>Loading ticket...</p>}
 
-        {error && <div className="form-error">{error}</div>}
+        {error && <div className="alert alert-error">{error}</div>}
 
-        {success && <div className="form-success">{success}</div>}
+        {success && <div className="alert alert-success">{success}</div>}
 
         {!loading && ticket && (
           <>
@@ -183,7 +217,7 @@ function TicketDetails({ ticketId, onClose, onUpdated }: TicketDetailsProps) {
               </div>
 
               <div className="ticket-update-controls">
-                <select
+                <select className="field"
                   value={status}
                   onChange={(e) => setStatus(e.target.value as TicketStatus)}
                 >
@@ -198,12 +232,52 @@ function TicketDetails({ ticketId, onClose, onUpdated }: TicketDetailsProps) {
 
                 <button
                   type="button"
-                  className="update-ticket-button"
+                  className="button button-primary"
                   onClick={handleUpdateStatus}
                   disabled={updating || status === (ticket.status || "Open")}
                 >
                   {updating ? "Updating..." : "Update Ticket"}
                 </button>
+              </div>
+              <div className="ticket-danger-zone">
+                <div>
+                  <span className="detail-label">Delete Ticket</span>
+
+                  <p>Permanently remove this support ticket.</p>
+                </div>
+
+                {!showDeleteConfirm ? (
+                  <button
+                    type="button"
+                    className="button button-danger"
+                    onClick={() => setShowDeleteConfirm(true)}
+                  >
+                    Delete Ticket
+                  </button>
+                ) : (
+                  <div className="delete-confirmation">
+                    <span>Are you sure you want to delete this ticket?</span>
+
+                    <div>
+                      <button
+                        type="button"
+                        className="button button-secondary"
+                        onClick={() => setShowDeleteConfirm(false)}
+                      >
+                        Cancel
+                      </button>
+
+                      <button
+                        type="button"
+                        className="button button-danger"
+                        onClick={handleDeleteTicket}
+                        disabled={deleting}
+                      >
+                        {deleting ? "Deleting..." : "Yes, Delete"}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </>
