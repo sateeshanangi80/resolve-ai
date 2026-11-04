@@ -1,12 +1,13 @@
 import type { Request, Response } from "express";
 import mongoose from "mongoose";
+import { ticketListQuerySchema } from "../validators/ticket.validator.js";
 
 import {
   createTicketService,
-  getTicketService,
-  getTicketByIdService,
-  updateTicketService,
   deleteTicketService,
+  getTicketByIdService,
+  getTicketService,
+  updateTicketService,
 } from "../services/ticket.service.js";
 
 export const createTicket = async (
@@ -14,32 +15,7 @@ export const createTicket = async (
   res: Response,
 ): Promise<void> => {
   try {
-    console.log("REQ BODY:", req.body);
-
-    if (!req.body) {
-      res.status(400).json({
-        success: false,
-        message: "Request body is required",
-      });
-      return;
-    }
-
-    const { title, description, category, priority } = req.body;
-
-    if (!title || !description) {
-      res.status(400).json({
-        success: false,
-        message: "Title and description are required",
-      });
-      return;
-    }
-
-    const ticket = await createTicketService({
-      title,
-      description,
-      category,
-      priority,
-    });
+    const ticket = await createTicketService(req.body);
 
     res.status(201).json({
       success: true,
@@ -62,12 +38,14 @@ export const getTickets = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const tickets = await getTicketService()
+    const query = ticketListQuerySchema.parse(res.locals.validatedQuery ?? _req.query);
+    const { tickets, pagination } = await getTicketService(query);
 
     res.status(200).json({
       success: true,
       message: "Tickets retrieved successfully",
       data: tickets,
+      pagination,
     });
   } catch (error) {
     console.error("Error retrieving tickets:", error);
@@ -87,15 +65,7 @@ export const getTicketById = async (
   try {
     const { id } = req.params;
 
-    if (typeof id !== "string" || !mongoose.Types.ObjectId.isValid(id)) {
-      res.status(400).json({
-        success: false,
-        message: "Invalid ticket ID",
-      });
-      return;
-    }
-
-    const ticket = await getTicketByIdService(id);
+    const ticket = await getTicketByIdService(req.params.id);
 
     if (!ticket) {
       res.status(404).json({
@@ -127,14 +97,6 @@ export const updateTicket = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-
-    if (typeof id !== "string" || !mongoose.Types.ObjectId.isValid(id)) {
-      res.status(400).json({
-        success: false,
-        message: "Invalid ticket ID",
-      });
-      return;
-    }
 
     const updatedTicket = await updateTicketService(id, req.body);
 

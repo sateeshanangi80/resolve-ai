@@ -25,11 +25,10 @@ function App() {
 
         <div className="nav-links">
           <a href="#features">Features</a>
-          <a href="#architecture">Architecture</a>
-          <a href="#about">About</a>
+          <a href="#tickets">Support workspace</a>
         </div>
 
-        <button className="login-button">Sign In</button>
+        <a className="login-button" href="#tickets">Manage tickets</a>
       </nav>
 
       <section className="hero-section">
@@ -51,10 +50,10 @@ function App() {
           </p>
 
           <div className="hero-actions">
-            <button className="primary-button">
+            <a className="primary-button" href="#tickets">
               Get Started
               <span>→</span>
-            </button>
+            </a>
 
             {/* <a
               href="https://github.com/sateeshanangi80/resolve-ai"
@@ -89,7 +88,7 @@ function App() {
 
               <div className="online">
                 <span></span>
-                Live
+                Preview
               </div>
             </div>
 

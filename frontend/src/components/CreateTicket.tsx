@@ -1,4 +1,5 @@
-import { API_URL } from "../api";
+import { ApiError, apiRequest } from "../api";
+import Modal from "./Modal";
 import { useState } from "react";
 
 interface CreateTicketProps {
@@ -26,6 +27,7 @@ function CreateTicket({ onCreated }: CreateTicketProps) {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -33,6 +35,7 @@ function CreateTicket({ onCreated }: CreateTicketProps) {
     >,
   ) => {
     const { name, value } = e.target;
+    setFieldErrors(previous => ({ ...previous, [name]: '' }));
 
     setForm((prev) => ({
       ...prev,
@@ -43,8 +46,11 @@ function CreateTicket({ onCreated }: CreateTicketProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!form.title.trim() || !form.description.trim()) {
-      setError("Title and description are required.");
+    const issues: Record<string, string> = {};
+    if (form.title.trim().length < 3) issues.title = 'Title must contain at least 3 characters.';
+    if (form.description.trim().length < 10) issues.description = 'Description must contain at least 10 characters.';
+    setFieldErrors(issues);
+    if (Object.keys(issues).length) {
       return;
     }
 
@@ -52,19 +58,13 @@ function CreateTicket({ onCreated }: CreateTicketProps) {
       setLoading(true);
       setError("");
 
-      const response = await fetch(`${API_URL}/api/tickets`, {
+      await apiRequest('/api/tickets', {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, title: form.title.trim(), description: form.description.trim() }),
       });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || "Failed to create ticket");
-      }
 
       setForm({
         title: "",
@@ -79,6 +79,7 @@ function CreateTicket({ onCreated }: CreateTicketProps) {
       onCreated();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
+      if (err instanceof ApiError) setFieldErrors(Object.fromEntries(err.issues.map(issue => [issue.field, issue.message])));
     } finally {
       setLoading(false);
     }
@@ -89,23 +90,24 @@ function CreateTicket({ onCreated }: CreateTicketProps) {
       <button
         type="button"
         className="button button-primary"
-        onClick={() => setIsOpen(true)}
+        onClick={() => { setError(''); setFieldErrors({}); setIsOpen(true); }}
       >
         + Create Ticket
       </button>
 
       {isOpen && (
-        <div className="modal-overlay">
-          <div className="modal">
+        <Modal titleId="create-ticket-title" onClose={() => setIsOpen(false)} busy={loading}>
             <div className="modal-header">
               <div>
                 <span>NEW SUPPORT REQUEST</span>
-                <h2>Create Ticket</h2>
+                <h2 id="create-ticket-title">Create Ticket</h2>
               </div>
 
               <button
                 type="button"
                 className="close-button"
+                aria-label="Close create ticket"
+                disabled={loading}
                 onClick={() => setIsOpen(false)}
               >
                 ×
@@ -119,10 +121,13 @@ function CreateTicket({ onCreated }: CreateTicketProps) {
                 <input className="field"
                   id="title"
                   name="title"
+                  required minLength={3} maxLength={150}
+                  aria-invalid={Boolean(fieldErrors.title)} aria-describedby="title-help"
                   value={form.title}
                   onChange={handleChange}
                   placeholder="Example: Payment deducted but plan inactive"
                 />
+                <small id="title-help" className={fieldErrors.title ? 'field-error' : 'field-help'}>{fieldErrors.title || `${form.title.length}/150 characters · minimum 3`}</small>
               </div>
 
               <div className="form-group">
@@ -131,11 +136,14 @@ function CreateTicket({ onCreated }: CreateTicketProps) {
                 <textarea className="field"
                   id="description"
                   name="description"
+                  required minLength={10} maxLength={2000}
+                  aria-invalid={Boolean(fieldErrors.description)} aria-describedby="description-help"
                   value={form.description}
                   onChange={handleChange}
                   placeholder="Explain the issue..."
                   rows={5}
                 />
+                <small id="description-help" className={fieldErrors.description ? 'field-error' : 'field-help'}>{fieldErrors.description || `${form.description.length}/2000 characters · minimum 10`}</small>
               </div>
 
               <div className="form-row">
@@ -158,6 +166,7 @@ function CreateTicket({ onCreated }: CreateTicketProps) {
 
                     <option value="Subscription">Subscription</option>
                   </select>
+                  {fieldErrors.category && <small className="field-error">{fieldErrors.category}</small>}
                 </div>
 
                 <div className="form-group">
@@ -175,15 +184,17 @@ function CreateTicket({ onCreated }: CreateTicketProps) {
 
                     <option value="High">High</option>
                   </select>
+                  {fieldErrors.priority && <small className="field-error">{fieldErrors.priority}</small>}
                 </div>
               </div>
 
-              {error && <div className="alert alert-error">{error}</div>}
+              {error && <div className="alert alert-error" role="alert">{error}</div>}
 
               <div className="form-actions">
                 <button
                   type="button"
                   className="button button-secondary"
+                  disabled={loading}
                   onClick={() => setIsOpen(false)}
                 >
                   Cancel
@@ -198,8 +209,7 @@ function CreateTicket({ onCreated }: CreateTicketProps) {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
+        </Modal>
       )}
     </>
   );

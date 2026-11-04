@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { API_URL } from "../api";
+import { ApiError, apiRequest } from "../api";
+import Modal from "./Modal";
 import type { Ticket } from "../types/ticket";
 
 interface TicketDetailsProps {
@@ -39,6 +40,7 @@ function TicketDetails({
 
   useEffect(() => {
     if (!ticketId) return;
+    const controller = new AbortController();
 
     const fetchTicket = async () => {
       try {
@@ -46,25 +48,21 @@ function TicketDetails({
         setError("");
         setSuccess("");
 
-        const response = await fetch(`${API_URL}/api/tickets/${ticketId}`);
-
-        const result: TicketResponse = await response.json();
-
-        if (!response.ok) {
-          throw new Error(result.message || "Failed to fetch ticket");
-        }
+        const result = await apiRequest<TicketResponse>(`/api/tickets/${ticketId}`, { signal: controller.signal });
+        if (controller.signal.aborted) return;
 
         setTicket(result.data);
 
         setStatus((result.data.status || "Open") as TicketStatus);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Something went wrong");
+        if (!controller.signal.aborted) setError(err instanceof Error ? err.message : "Something went wrong");
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     };
 
     fetchTicket();
+    return () => controller.abort();
   }, [ticketId]);
 
   const handleUpdateStatus = async () => {
@@ -75,7 +73,7 @@ function TicketDetails({
       setError("");
       setSuccess("");
 
-      const response = await fetch(`${API_URL}/api/tickets/${ticketId}`, {
+      const result = await apiRequest<TicketResponse>(`/api/tickets/${ticketId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -85,12 +83,6 @@ function TicketDetails({
         }),
       });
 
-      const result: TicketResponse = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || "Failed to update ticket");
-      }
-
       // Update modal with latest ticket
       setTicket(result.data);
 
@@ -99,7 +91,7 @@ function TicketDetails({
       // Refresh GET /api/tickets in parent
       onUpdated();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof ApiError && err.issues.length ? err.issues.map(issue => issue.message).join(' ') : err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setUpdating(false);
     }
@@ -112,15 +104,9 @@ function TicketDetails({
       setDeleting(true);
       setError("");
 
-      const response = await fetch(`${API_URL}/api/tickets/${ticketId}`, {
+      await apiRequest(`/api/tickets/${ticketId}`, {
         method: "DELETE",
       });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || "Failed to delete ticket");
-      }
 
       onDeleted();
       onClose();
@@ -136,24 +122,23 @@ function TicketDetails({
   }
 
   return (
-    <div className="modal-overlay">
-      <div className="modal modal-wide">
+    <Modal titleId="ticket-details-title" onClose={onClose} busy={updating || deleting} wide>
         <div className="modal-header">
           <div>
             <span>TICKET DETAILS</span>
-            <h2>Support Ticket</h2>
+            <h2 id="ticket-details-title">Support Ticket</h2>
           </div>
 
-          <button type="button" className="close-button" onClick={onClose}>
+          <button type="button" className="close-button" aria-label="Close ticket details" disabled={updating || deleting} onClick={onClose}>
             ×
           </button>
         </div>
 
         {loading && <p>Loading ticket...</p>}
 
-        {error && <div className="alert alert-error">{error}</div>}
+        {error && <div className="alert alert-error" role="alert">{error}</div>}
 
-        {success && <div className="alert alert-success">{success}</div>}
+        {success && <div className="alert alert-success" role="status">{success}</div>}
 
         {!loading && ticket && (
           <>
@@ -218,6 +203,7 @@ function TicketDetails({
 
               <div className="ticket-update-controls">
                 <select className="field"
+                  aria-label="Ticket status" disabled={updating || deleting}
                   value={status}
                   onChange={(e) => setStatus(e.target.value as TicketStatus)}
                 >
@@ -234,7 +220,7 @@ function TicketDetails({
                   type="button"
                   className="button button-primary"
                   onClick={handleUpdateStatus}
-                  disabled={updating || status === (ticket.status || "Open")}
+                  disabled={updating || deleting || status === (ticket.status || "Open")}
                 >
                   {updating ? "Updating..." : "Update Ticket"}
                 </button>
@@ -250,6 +236,7 @@ function TicketDetails({
                   <button
                     type="button"
                     className="button button-danger"
+                    disabled={updating || deleting}
                     onClick={() => setShowDeleteConfirm(true)}
                   >
                     Delete Ticket
@@ -262,6 +249,7 @@ function TicketDetails({
                       <button
                         type="button"
                         className="button button-secondary"
+                        disabled={deleting}
                         onClick={() => setShowDeleteConfirm(false)}
                       >
                         Cancel
@@ -271,7 +259,7 @@ function TicketDetails({
                         type="button"
                         className="button button-danger"
                         onClick={handleDeleteTicket}
-                        disabled={deleting}
+                        disabled={deleting || updating}
                       >
                         {deleting ? "Deleting..." : "Yes, Delete"}
                       </button>
@@ -282,8 +270,7 @@ function TicketDetails({
             </div>
           </>
         )}
-      </div>
-    </div>
+    </Modal>
   );
 }
 
