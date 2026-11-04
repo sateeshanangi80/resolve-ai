@@ -122,154 +122,71 @@ function TicketDetails({
   }
 
   return (
-    <Modal titleId="ticket-details-title" onClose={onClose} busy={updating || deleting} wide>
-        <div className="modal-header">
-          <div>
-            <span>TICKET DETAILS</span>
-            <h2 id="ticket-details-title">Support Ticket</h2>
+    <Modal titleId="ticket-details-title" onClose={onClose} busy={updating || deleting} wide className="ticket-details-modal">
+      <div className="modal-header">
+        <div className="ticket-details-heading">
+          <span>{ticket ? `TICKET #${ticket._id.slice(-6).toUpperCase()}` : 'TICKET DETAILS'}</span>
+          <h2 id="ticket-details-title">{ticket?.title || 'Support ticket'}</h2>
+        </div>
+        <button type="button" className="close-button" aria-label="Close ticket details" disabled={updating || deleting} onClick={onClose}>
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      {loading && <p role="status">Loading ticket...</p>}
+      {error && <div className="alert alert-error" role="alert">{error}</div>}
+      {success && <div className="alert alert-success" role="status">{success}</div>}
+
+      {!loading && ticket && (
+        <>
+          <div className="ticket-details-meta">
+            <span className="ticket-category">{ticket.category}</span>
+            <span className={`ticket-priority ${ticket.priority.toLowerCase()}`}>{ticket.priority} priority</span>
+            <time dateTime={ticket.createdAt} title={new Date(ticket.createdAt).toLocaleString()}>
+              Created {new Date(ticket.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+            </time>
           </div>
 
-          <button type="button" className="close-button" aria-label="Close ticket details" disabled={updating || deleting} onClick={onClose}>
-            ×
-          </button>
-        </div>
-
-        {loading && <p>Loading ticket...</p>}
-
-        {error && <div className="alert alert-error" role="alert">{error}</div>}
-
-        {success && <div className="alert alert-success" role="status">{success}</div>}
-
-        {!loading && ticket && (
-          <>
-            <div className="ticket-detail-top">
-              <div>
-                <span className="detail-label">Ticket ID</span>
-
-                <strong>#{ticket._id.slice(-6).toUpperCase()}</strong>
-              </div>
-
-              <span
-                className={`ticket-priority ${ticket.priority.toLowerCase()}`}
-              >
-                {ticket.priority}
-              </span>
-            </div>
-
-            <div className="detail-block">
-              <span className="detail-label">Title</span>
-
-              <h3>{ticket.title}</h3>
-            </div>
-
-            <div className="detail-block">
-              <span className="detail-label">Description</span>
-
+          <div className="ticket-details-description">
+            <span className="detail-label" id="ticket-description-label">Description</span>
+            <div className="ticket-description-scroll" tabIndex={0} role="region" aria-labelledby="ticket-description-label">
               <p>{ticket.description}</p>
             </div>
+          </div>
 
-            <div className="ticket-detail-grid">
-              <div>
-                <span className="detail-label">Category</span>
+          <div className="ticket-details-status">
+            <label htmlFor="detail-status">Status</label>
+            <select id="detail-status" className="field" disabled={updating || deleting || showDeleteConfirm}
+              value={status} onChange={event => { setStatus(event.target.value as TicketStatus); setSuccess(''); }}>
+              <option value="Open">Open</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Resolved">Resolved</option>
+              <option value="Closed">Closed</option>
+            </select>
+            <button type="button" className="button button-primary" onClick={handleUpdateStatus}
+              disabled={updating || deleting || showDeleteConfirm || status === (ticket.status || 'Open')}>
+              {updating ? 'Saving...' : 'Save status'}
+            </button>
+          </div>
 
-                <strong>{ticket.category}</strong>
-              </div>
-
-              <div>
-                <span className="detail-label">Priority</span>
-
-                <strong>{ticket.priority}</strong>
-              </div>
-
-              <div>
-                <span className="detail-label">Current Status</span>
-
-                <strong>{ticket.status || "Open"}</strong>
-              </div>
-
-              <div>
-                <span className="detail-label">Created</span>
-
-                <strong>{new Date(ticket.createdAt).toLocaleString()}</strong>
-              </div>
-            </div>
-
-            <div className="ticket-update-section">
-              <div>
-                <span className="detail-label">Update Status</span>
-
-                <p>Change the current support ticket status.</p>
-              </div>
-
-              <div className="ticket-update-controls">
-                <select className="field"
-                  aria-label="Ticket status" disabled={updating || deleting}
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value as TicketStatus)}
-                >
-                  <option value="Open">Open</option>
-
-                  <option value="In Progress">In Progress</option>
-
-                  <option value="Resolved">Resolved</option>
-
-                  <option value="Closed">Closed</option>
-                </select>
-
-                <button
-                  type="button"
-                  className="button button-primary"
-                  onClick={handleUpdateStatus}
-                  disabled={updating || deleting || status === (ticket.status || "Open")}
-                >
-                  {updating ? "Updating..." : "Update Ticket"}
-                </button>
-              </div>
-              <div className="ticket-danger-zone">
+          <div className="ticket-details-footer">
+            {showDeleteConfirm ? (
+              <div className="ticket-delete-confirm" role="group" aria-label="Confirm ticket deletion">
+                <p>Delete this ticket permanently?</p>
                 <div>
-                  <span className="detail-label">Delete Ticket</span>
-
-                  <p>Permanently remove this support ticket.</p>
+                  <button type="button" className="button button-secondary" disabled={deleting} onClick={() => setShowDeleteConfirm(false)}>Keep ticket</button>
+                  <button type="button" className="button button-danger" disabled={deleting || updating} onClick={handleDeleteTicket}>{deleting ? 'Deleting...' : 'Delete ticket'}</button>
                 </div>
-
-                {!showDeleteConfirm ? (
-                  <button
-                    type="button"
-                    className="button button-danger"
-                    disabled={updating || deleting}
-                    onClick={() => setShowDeleteConfirm(true)}
-                  >
-                    Delete Ticket
-                  </button>
-                ) : (
-                  <div className="delete-confirmation">
-                    <span>Are you sure you want to delete this ticket?</span>
-
-                    <div>
-                      <button
-                        type="button"
-                        className="button button-secondary"
-                        disabled={deleting}
-                        onClick={() => setShowDeleteConfirm(false)}
-                      >
-                        Cancel
-                      </button>
-
-                      <button
-                        type="button"
-                        className="button button-danger"
-                        onClick={handleDeleteTicket}
-                        disabled={deleting || updating}
-                      >
-                        {deleting ? "Deleting..." : "Yes, Delete"}
-                      </button>
-                    </div>
-                  </div>
-                )}
               </div>
-            </div>
-          </>
-        )}
+            ) : (
+              <>
+                <button type="button" className="ticket-delete-link" disabled={updating || deleting} onClick={() => { setShowDeleteConfirm(true); setSuccess(''); }}>Delete ticket</button>
+                <button type="button" className="button button-secondary" disabled={updating || deleting} onClick={onClose}>Done</button>
+              </>
+            )}
+          </div>
+        </>
+      )}
     </Modal>
   );
 }

@@ -660,3 +660,32 @@ dialog.modal::backdrop { background: #0f172a80; backdrop-filter: blur(4px); }
   .ticket-heading h2 { font-size: 26px; }
   dialog.modal { margin: auto; max-height: calc(100dvh - 28px); width: calc(100% - 28px); }
 }
+
+/* Compact ticket details */
+.ticket-details-modal .modal-header { margin-bottom: 16px; gap: 16px; }
+.ticket-details-heading { min-width: 0; }
+.ticket-details-modal .modal-header h2 { margin-top: 8px; font-size: 21px; line-height: 1.4; letter-spacing: -.4px; overflow-wrap: anywhere; }
+.ticket-details-modal .close-button span { color: inherit; font-size: 23px; font-weight: 400; letter-spacing: 0; }
+.ticket-details-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+.ticket-details-meta time { margin-left: auto; color: var(--text-muted); font-size: 11px; }
+.ticket-description-scroll { max-height: min(220px, 30dvh); overflow-y: auto; margin-top: 8px; padding-right: 8px; scrollbar-width: thin; }
+.ticket-description-scroll p { margin: 0; color: var(--text-secondary); font-size: 14px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
+.ticket-description-scroll:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
+.ticket-details-status { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px; margin-top: 22px; padding: 18px 0; border-top: 1px solid #e5eaf1; border-bottom: 1px solid #e5eaf1; }
+.ticket-details-status label { color: var(--text-secondary); font-size: 13px; font-weight: 600; }
+.ticket-details-status .field { min-height: 40px; }
+.ticket-details-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 16px; }
+.ticket-delete-link { padding: 8px 0; border: 0; background: transparent; color: #b42332; font-size: 12px; font-weight: 600; }
+.ticket-delete-link:hover:not(:disabled) { text-decoration: underline; }
+.ticket-delete-link:disabled { opacity: .5; cursor: not-allowed; }
+.ticket-delete-confirm { width: 100%; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.ticket-delete-confirm p { margin: 0; color: #b42332; font-size: 12px; font-weight: 600; }
+.ticket-delete-confirm > div { display: flex; gap: 8px; }
+@media (max-width: 600px) {
+  .ticket-details-meta time { width: 100%; margin: 3px 0 0; }
+  .ticket-details-status { grid-template-columns: minmax(0, 1fr) auto; gap: 10px; }
+  .ticket-details-status label { grid-column: 1 / -1; }
+  .ticket-details-modal .modal-header h2 { font-size: 19px; }
+  .ticket-delete-confirm > div { width: 100%; }
+  .ticket-delete-confirm .button { flex: 1; }
+}
