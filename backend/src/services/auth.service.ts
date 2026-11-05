@@ -41,15 +41,15 @@ export const loginUserService = async (data: LoginInput) => {
 
   if (!user) {
     throw new AppError("Invalid email or password", 401);
-
-    if (!user.isActive) {
-      throw new AppError("Your Account is inactive", 403);
-    }
-
-    const psswordMatches = await bcrypt.compare(data.password, user.password);
-
-    if (!psswordMatches) throw new AppError("Invalid email or password", 401);
   }
+
+  if (!user.isActive) {
+    throw new AppError("Your Account is inactive", 403);
+  }
+
+  const passwordMatches = await bcrypt.compare(data.password, user.password);
+
+  if (!passwordMatches) throw new AppError("Invalid email or password", 401);
 
   const accessToken = generateAccessToken({
     userId: user._id.toString(),
@@ -57,25 +57,14 @@ export const loginUserService = async (data: LoginInput) => {
     role: user.role,
   });
 
-return {
-  user: {
-    id : user._id,
-
-    name: user.name,
-
-    email:user.email,
-
-    role:user.role,
-
-    isActive:user.isActive,
-  },
-
-  accessToken
-}
-}
-
-
-
-
-
+  return {
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      isActive: user.isActive,
+    },
+    accessToken,
+  };
 };
