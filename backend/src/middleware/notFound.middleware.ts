@@ -8,9 +8,7 @@ export const notFound = (
 ): void => {
   next(
     new AppError(
-      `Route
-
-      not found`,
+      `Route ${req.method} ${req.path} not found`,
       404,
     ),
   );
