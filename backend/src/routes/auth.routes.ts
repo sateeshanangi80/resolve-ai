@@ -16,6 +16,13 @@ router.post("/login", validateBody(loginSchema), loginUser);
 
 router.post("/refresh", refreshAccessToken);
 
+router.all("/refresh", (_req, res) => {
+  res.set("Allow", "POST").status(405).json({
+    success: false,
+    message: "Use POST /api/auth/refresh with the refreshToken cookie from login",
+  });
+});
+
 router.post("/logout", logoutUser);
 
 export default router;

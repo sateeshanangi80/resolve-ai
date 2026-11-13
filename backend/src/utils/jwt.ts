@@ -20,7 +20,7 @@ const getAccessSecret = () => {
 
 
 
-  
+
   if (!secret) {
     throw new Error("JWT_ACCESS_SECRET is not defined");
   }
@@ -91,4 +91,31 @@ export const hashToken = (token: string): string => {
 
 export const getRefreshExpiry = (): Date => {
   return new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+};
+
+interface AccessTokenDecoded extends JwtPayload {
+  userId: string;
+  role: UserRole;
+}
+
+export const verifyAccessToken = (token: string): AccessTokenDecoded => {
+  const decoded = jwt.verify(token, getAccessSecret(), {
+    algorithms: ["HS256"],
+  });
+
+  const validRoles: UserRole[] = [
+    "Customer",
+    "SupportAgent",
+    "Admin",
+  ];
+
+  if (
+    typeof decoded === "string" ||
+    !decoded.userId ||
+    !validRoles.includes(decoded.role)
+  ) {
+    throw new Error("Invalid access token");
+  }
+
+  return decoded as AccessTokenDecoded;
 };

@@ -36,8 +36,7 @@ const userSchema = new mongoose.Schema<IUser>(
       type: String,
 
       enum: ["Customer", "SupportAgent", "Admin"],
-
-      //  public registration always for customer
+      default:"Customer",
     },
 
     isActive: {

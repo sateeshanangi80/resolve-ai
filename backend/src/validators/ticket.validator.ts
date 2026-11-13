@@ -70,3 +70,11 @@ export const ticketListQuerySchema = z.object({
 });
 
 export type TicketListQuery = z.infer<typeof ticketListQuerySchema>;
+
+export const assignTicketSchema = z
+  .object({
+    assignedTo: z
+      .string()
+      .regex(/^[0-9a-fA-F]{24}$/, "Invalid support agent ID"),
+  })
+  .strict();

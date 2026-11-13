@@ -1,166 +1,132 @@
 import type { Request, Response } from "express";
-import mongoose from "mongoose";
-import { ticketListQuerySchema } from "../validators/ticket.validator.js";
+import { ticketIdSchema } from "../validators/ticket.validator.js";
 
 import {
+  assignTicketService,
   createTicketService,
   deleteTicketService,
   getTicketByIdService,
   getTicketService,
   updateTicketService,
 } from "../services/ticket.service.js";
+import { AppError } from "../utils/AppError.js";
 
-export const createTicket = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
-  try {
-    const ticket = await createTicketService(req.body);
-
-    res.status(201).json({
-      success: true,
-      message: "Ticket created successfully",
-      data: ticket,
-    });
-  } catch (error) {
-    console.error("Error creating ticket:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to create ticket",
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
+const getAuthenticatedUser = (req: Request) => {
+  if (!req.user) {
+    throw new AppError("Authentication required", 401);
   }
+
+  return req.user;
 };
 
-export const getTickets = async (
-  _req: Request,
-  res: Response,
-): Promise<void> => {
-  try {
-    const query = ticketListQuerySchema.parse(res.locals.validatedQuery ?? _req.query);
-    const { tickets, pagination } = await getTicketService(query);
-
-    res.status(200).json({
-      success: true,
-      message: "Tickets retrieved successfully",
-      data: tickets,
-      pagination,
-    });
-  } catch (error) {
-    console.error("Error retrieving tickets:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to retrieve tickets",
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
+const getTicketId = (req: Request): string => {
+  const result = ticketIdSchema.safeParse(req.params);
+  if (!result.success) {
+    throw new AppError("Invalid ticket ID", 400);
   }
+  return result.data.id;
 };
 
-export const getTicketById = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
-  try {
-    const { id } = req.params;
+export const createTicket = async (req: Request, res: Response) => {
+  const user = getAuthenticatedUser(req);
 
-    const ticket = await getTicketByIdService(req.params.id);
+  const ticket = await createTicketService(req.body, user.id);
 
-    if (!ticket) {
-      res.status(404).json({
-        success: false,
-        message: "Ticket not found",
-      });
-      return;
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Ticket retrieved successfully",
-      data: ticket,
-    });
-  } catch (error) {
-    console.error("Error retrieving ticket:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to retrieve ticket",
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
-  }
+  res.status(201).json({
+    success: true,
+    message: "Ticket created successfully",
+    data: ticket,
+  });
 };
 
-export const updateTicket = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
-  try {
-    const { id } = req.params;
+export const getTickets = async (req: Request, res: Response) => {
+  const user = getAuthenticatedUser(req);
 
-    const updatedTicket = await updateTicketService(id, req.body);
+  const query = res.locals.validatedQuery;
 
-    if (!updatedTicket) {
-      res.status(404).json({
-        success: false,
-        message: "Ticket not found",
-      });
-      return;
-    }
+  const { tickets, pagination } = await getTicketService(query, user);
 
-    res.status(200).json({
-      success: true,
-      message: "Ticket updated successfully",
-      data: updatedTicket,
-    });
-  } catch (error) {
-    console.error("Error updating ticket:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to update ticket",
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
-  }
+  res.status(200).json({
+    success: true,
+    message: "Tickets retrieved successfully",
+    data: tickets,
+    pagination,
+  });
 };
 
-export const deleteTicket = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
-  try {
-    const { id } = req.params;
+export const getTicketById = async (req: Request, res: Response) => {
+  const user = getAuthenticatedUser(req);
+  const id = getTicketId(req);
 
-    if (typeof id !== "string" || !mongoose.Types.ObjectId.isValid(id)) {
-      res.status(400).json({
-        success: false,
-        message: "Invalid ticket ID",
-      });
-      return;
-    }
+  const ticket = await getTicketByIdService(id, user);
 
-    const deletedTicket = await deleteTicketService(id);
-
-    if (!deletedTicket) {
-      res.status(404).json({
-        success: false,
-        message: "Ticket not found",
-      });
-      return;
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Ticket deleted successfully",
-      data: deletedTicket,
-    });
-  } catch (error) {
-    console.error("Error deleting ticket:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to delete ticket",
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
+  if (!ticket) {
+    throw new AppError("Ticket not found", 404);
   }
+
+  res.status(200).json({
+    success: true,
+    message: "Ticket retrieved successfully",
+    data: ticket,
+  });
+};
+
+export const updateTicket = async (req: Request, res: Response) => {
+  const user = getAuthenticatedUser(req);
+  const id = getTicketId(req);
+
+  if (
+    user.role === "SupportAgent" &&
+    Object.keys(req.body).some((field) => field !== "status")
+  ) {
+    throw new AppError("Support agents can update only ticket status", 403);
+  }
+
+  // Support agents can update only ticket status.
+  const updateData =
+    user.role === "SupportAgent" ? { status: req.body.status } : req.body;
+
+  const updatedTicket = await updateTicketService(id, updateData, user);
+
+  if (!updatedTicket) {
+    throw new AppError("Ticket not found", 404);
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "Ticket updated successfully",
+    data: updatedTicket,
+  });
+};
+
+export const deleteTicket = async (req: Request, res: Response) => {
+  const id = getTicketId(req);
+
+  const deletedTicket = await deleteTicketService(id);
+
+  if (!deletedTicket) {
+    throw new AppError("Ticket not found", 404);
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "Ticket deleted successfully",
+    data: deletedTicket,
+  });
+};
+
+export const assignTicket = async (req: any, res: any) => {
+  const { assignedTo } = req.body;
+
+  const ticket = await assignTicketService(req.params.id, assignedTo);
+
+  if (!ticket) {
+    throw new AppError("Ticket not found", 404);
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "Ticket assigned successfully",
+    data: ticket,
+  });
 };
