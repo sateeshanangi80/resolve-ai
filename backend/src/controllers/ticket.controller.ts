@@ -115,10 +115,10 @@ export const deleteTicket = async (req: Request, res: Response) => {
   });
 };
 
-export const assignTicket = async (req: any, res: any) => {
+export const assignTicket = async (req: Request, res: Response) => {
   const { assignedTo } = req.body;
 
-  const ticket = await assignTicketService(req.params.id, assignedTo);
+  const ticket = await assignTicketService(getTicketId(req), assignedTo);
 
   if (!ticket) {
     throw new AppError("Ticket not found", 404);

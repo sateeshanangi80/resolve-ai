@@ -11,6 +11,8 @@ export interface Pagination {
     hasPreviousPage: boolean;
 }
 export interface Ticket {
+    createdBy?: string | { _id: string; name: string; email: string }
+    assignedTo?: string | { _id: string; name: string; email: string } | null
     _id: string
     title: string
     description: string

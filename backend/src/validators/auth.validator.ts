@@ -27,6 +27,7 @@ export type RegisterInput = z.infer<typeof registerSchema>;
 
 export const loginSchema = z
   .object({
+    portalRole: z.enum(["Customer", "SupportAgent", "Admin"]).optional(),
     email: z
       .string()
       .trim()

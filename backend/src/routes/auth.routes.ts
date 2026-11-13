@@ -1,4 +1,6 @@
 import { Router } from "express";
+import { authenticate } from "../middleware/auth.middleware.js";
+import { rateLimit } from "../middleware/rateLimit.middleware.js";
 import {
   loginUser,
   logoutUser,
@@ -9,10 +11,15 @@ import { validateBody } from "../middleware/validate.middleware.js";
 import { loginSchema, registerSchema } from "../validators/auth.validator.js";
 
 const router = Router();
+const credentialsLimit = rateLimit(20, 15 * 60000);
 
-router.post("/register", validateBody(registerSchema), registerUser);
+router.get("/me", authenticate, (req, res) => {
+  res.status(200).json({ success: true, data: req.user });
+});
 
-router.post("/login", validateBody(loginSchema), loginUser);
+router.post("/register", credentialsLimit, validateBody(registerSchema), registerUser);
+
+router.post("/login", credentialsLimit, validateBody(loginSchema), loginUser);
 
 router.post("/refresh", refreshAccessToken);
 

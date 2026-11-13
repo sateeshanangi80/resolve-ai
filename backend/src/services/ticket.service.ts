@@ -66,6 +66,7 @@ export const getTicketService = async (
   const filter: QueryFilter<ITicket> = {
     ...getTicketAccessFilter(user),
   };
+  if (query.assignment && user.role === "Admin") filter.assignedTo = null;
 
   // Filters
 
@@ -117,7 +118,7 @@ export const getTicketService = async (
   // Database queries
 
   const [tickets, total] = await Promise.all([
-    Ticket.find(filter).sort(sort).skip(skip).limit(limit),
+    Ticket.find(filter).sort({ ...sort, _id: sortDirection }).skip(skip).limit(limit).populate("createdBy", "name email").populate("assignedTo", "name email"),
 
     Ticket.countDocuments(filter),
   ]);
@@ -146,7 +147,7 @@ export const getTicketByIdService = async (id: string, user: TicketUser) => {
   return Ticket.findOne({
     _id: id,
     ...getTicketAccessFilter(user),
-  });
+  }).populate("createdBy", "name email").populate("assignedTo", "name email");
 };
 
 /*
@@ -169,7 +170,7 @@ export const updateTicketService = async (
       new: true,
       runValidators: true,
     },
-  );
+  ).populate("createdBy", "name email").populate("assignedTo", "name email");
 };
 
 /*

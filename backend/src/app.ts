@@ -1,3 +1,4 @@
+import "dotenv/config";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
@@ -5,8 +6,11 @@ import { errorHandler } from "./middleware/error.middleware.js";
 import { notFound } from "./middleware/notFound.middleware.js";
 import authRoutes from "./routes/auth.routes.js";
 import ticketRoutes from "./routes/ticket.routes.js";
+import { publicPortalRoutes, workspaceRoutes } from "./routes/portal.routes.js";
+import { AppError } from "./utils/AppError.js";
 
 const app = express();
+app.disable("x-powered-by");
 
 app.use(
   cors({
@@ -14,6 +18,15 @@ app.use(
     credentials: true,
   }),
 );
+app.use((req, res, next) => {
+  res.set("X-Content-Type-Options", "nosniff");
+  res.set("Referrer-Policy", "no-referrer");
+  if (["POST", "PUT", "PATCH", "DELETE"].includes(req.method) && req.headers.origin && req.headers.origin !== process.env.FRONTEND_URL) {
+    next(new AppError("This website origin is not allowed to make changes", 403));
+    return;
+  }
+  next();
+});
 app.use(express.json());
 
 app.use(cookieParser());
@@ -29,6 +42,8 @@ app.get("/api/health", (_req, res) => {
 app.use("/api/tickets", ticketRoutes);
 
 app.use("/api/auth", authRoutes);
+app.use("/api/portal", publicPortalRoutes);
+app.use("/api/workspace", workspaceRoutes);
 
 /*
   IMPORTANT:

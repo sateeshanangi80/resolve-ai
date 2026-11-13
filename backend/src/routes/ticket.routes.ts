@@ -75,7 +75,6 @@ router.delete(
 
 router.patch(
   "/:id/assign",
-  authenticate,
   authorizeRoles("Admin"),
   validateParams(ticketIdSchema),
   validateBody(assignTicketSchema),

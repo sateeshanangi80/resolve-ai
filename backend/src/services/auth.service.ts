@@ -61,6 +61,15 @@ export const loginUserService = async (data: LoginInput) => {
     throw new AppError("Invalid email or password", 401);
   }
 
+  if (data.portalRole && user.role !== data.portalRole) {
+    const roleLabel = user.role === "SupportAgent" ? "Support" : user.role;
+    const requestedRole = data.portalRole === "SupportAgent" ? "Support" : data.portalRole;
+    throw new AppError(
+      `This account has ${roleLabel} access, not ${requestedRole} access. Use the ${roleLabel} sign-in portal.`,
+      403,
+    );
+  }
+
   const accessToken = generateAccessToken({
     userId: user._id.toString(),
 
@@ -164,10 +173,14 @@ export const refreshTokenService = async (refreshToken: string) => {
 
   // old refresh-toekn hash is replaced
   // old token can no longer refresh
-  session.tokenHash = hashToken(newRefreshToken);
-
-  session.expiresAt = getRefreshExpiry();
-  await session.save();
+  const rotatedSession = await RefreshSession.findOneAndUpdate(
+    { _id: session._id, tokenHash, expiresAt: { $gt: new Date() } },
+    { $set: { tokenHash: hashToken(newRefreshToken), expiresAt: getRefreshExpiry() } },
+    { new: true },
+  );
+  if (!rotatedSession) {
+    throw new AppError("Refresh token was already used. Please sign in again.", 401);
+  }
 
   return {
     accessToken: newAcessToken,

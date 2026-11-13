@@ -14,6 +14,11 @@ export const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
     return;
   }
 
+  if (error?.code === 11000) {
+    res.status(409).json({ success: false, message: "An account or invitation with this email already exists" });
+    return;
+  }
+
   // Mongoose validation error
   if (error?.name === "ValidationError") {
     res.status(400).json({
