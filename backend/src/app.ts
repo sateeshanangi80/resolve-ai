@@ -8,20 +8,21 @@ import authRoutes from "./routes/auth.routes.js";
 import ticketRoutes from "./routes/ticket.routes.js";
 import { publicPortalRoutes, workspaceRoutes } from "./routes/portal.routes.js";
 import { AppError } from "./utils/AppError.js";
+import { frontendOrigin } from "./config/frontend.js";
 
 const app = express();
 app.disable("x-powered-by");
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
+    origin: frontendOrigin,
     credentials: true,
   }),
 );
 app.use((req, res, next) => {
   res.set("X-Content-Type-Options", "nosniff");
   res.set("Referrer-Policy", "no-referrer");
-  if (["POST", "PUT", "PATCH", "DELETE"].includes(req.method) && req.headers.origin && req.headers.origin !== process.env.FRONTEND_URL) {
+  if (["POST", "PUT", "PATCH", "DELETE"].includes(req.method) && req.headers.origin && req.headers.origin !== frontendOrigin) {
     next(new AppError("This website origin is not allowed to make changes", 403));
     return;
   }

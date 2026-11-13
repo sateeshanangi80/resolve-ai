@@ -322,3 +322,7 @@ Ticket list queries additionally support `assignment=unassigned` for Admin. Othe
 Run `npm.cmd test` to build and run `tests/portal.test.mjs`. Tests isolate MongoDB with model mocks and cover role restrictions, public-registration privilege rejection, CORS/origin checks, setup key/concurrency checks, invitation consumption, user access protection/revocation, ticket ownership filters, scoped metrics, and atomic refresh consumption. They never connect to the configured database. Real MongoDB behavior, browser cookies, mobile layouts, deployment, backups, and a security review remain separate checks.
 
 **Interview follow-up:** ?I extended the product from a role-aware queue into separate customer, support, and admin panels. I designed secure first-admin bootstrap and invitation onboarding so public users cannot self-promote, added admin access management and a real agent directory, and kept role and document authorization on the server.?
+
+### Production frontend origin
+
+The current production frontend is https://resolve-ai-three-alpha.vercel.app. Set FRONTEND_URL to that exact origin on Render (no trailing slash). If the variable is absent in production, src/config/frontend.ts uses that same exact origin. Development defaults to http://localhost:5173. Custom deployments must override FRONTEND_URL. Both credentialed CORS and the state-change origin guard use this shared value.
