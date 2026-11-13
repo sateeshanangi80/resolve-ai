@@ -203,6 +203,19 @@ test('role panels and onboarding contracts (mocked database)', async t => {
       assert.equal(result.filter(r=>r.status==='fulfilled').length,1);
       assert.equal(result.filter(r=>r.status==='rejected'&&r.reason.statusCode===401).length,1);
     });
+    await t.test('missing production token settings return 503 without leaking a secret',async()=>{
+      const access=process.env.JWT_ACCESS_SECRET;
+      const refresh=process.env.JWT_REFRESH_SECRET;
+      try {
+        delete process.env.JWT_ACCESS_SECRET;
+        assert.throws(()=>generateAccessToken({userId:adminId,role:'Admin'}),error=>error.statusCode===503&&error.message.includes('JWT_ACCESS_SECRET'));
+        delete process.env.JWT_REFRESH_SECRET;
+        await assert.rejects(refreshTokenService('invalid-diagnostic-token'),error=>error.statusCode===503&&error.message.includes('JWT_REFRESH_SECRET'));
+      } finally {
+        process.env.JWT_ACCESS_SECRET=access;
+        process.env.JWT_REFRESH_SECRET=refresh;
+      }
+    });
   } finally {
     authentication.mock.restore();log.mock.restore();
     await new Promise(resolve=>server.close(resolve));

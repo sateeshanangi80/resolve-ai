@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import jwt, { type JwtPayload } from "jsonwebtoken";
 
 import type { UserRole } from "../models/User.js";
+import { AppError } from "./AppError.js";
 
 interface AccessTokenPayload {
   userId: string;
@@ -22,7 +23,7 @@ const getAccessSecret = () => {
 
 
   if (!secret) {
-    throw new Error("JWT_ACCESS_SECRET is not defined");
+    throw new AppError("Authentication is unavailable: configure JWT_ACCESS_SECRET in the backend hosting environment.", 503);
   }
 
   return secret;
@@ -32,7 +33,7 @@ const getRefreshSecret = () => {
   const secret = process.env.JWT_REFRESH_SECRET;
 
   if (!secret) {
-    throw new Error("JWT_REFRESH_SECRET is not defined");
+    throw new AppError("Authentication is unavailable: configure JWT_REFRESH_SECRET in the backend hosting environment.", 503);
   }
 
   return secret;

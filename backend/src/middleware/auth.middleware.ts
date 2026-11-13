@@ -20,7 +20,8 @@ export const authenticate: RequestHandler = async (req, res, next) => {
 
   try {
     decoded = verifyAccessToken(token);
-  } catch {
+  } catch (error) {
+    if (error instanceof AppError && error.statusCode === 503) throw error;
     throw new AppError("Invalid or expired access token", 401);
   }
 

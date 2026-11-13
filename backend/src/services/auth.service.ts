@@ -128,7 +128,8 @@ export const refreshTokenService = async (refreshToken: string) => {
 
   try {
     payload = verifyRefreshToken(refreshToken);
-  } catch {
+  } catch (error) {
+    if (error instanceof AppError && error.statusCode === 503) throw error;
     throw new AppError("Invalid refresh token", 401);
   }
 
